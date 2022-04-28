@@ -368,7 +368,6 @@ void test_insert(TTree** tree) {
 	ASSERT(f, *((long*)(*tree)->root->left->left->elem) == 0l, "Insert-07");
 	ASSERT(f, *((long*)(*tree)->root->left->right->elem) == 2l, "Insert-08");
 
-
 	// Test Left Rotate
 	insert((*tree), values + 5, values + 5);
 	insert((*tree), values + 6, values + 6);
@@ -376,14 +375,13 @@ void test_insert(TTree** tree) {
 	ASSERT(f, *((long*)(*tree)->root->right->left->elem) == 4l,"Insert-10");
 	ASSERT(f, *((long*)(*tree)->root->right->right->elem) == 6l,"Insert-11");
 
-
 	// Test Zig-Zag case
 	insert((*tree), values + 8, values + 8);
 	insert((*tree), values + 7, values + 7);
 	ASSERT(f, *((long*)(*tree)->root->right->right->elem) == 7l,"Insert-12");
 	ASSERT(f, *((long*)(*tree)->root->right->right->left->elem) == 6l,"Insert-13");
 	ASSERT(f, *((long*)(*tree)->root->right->right->right->elem) == 8l,"Insert-14");
-
+	printf("::::::::::::::::::::::::::::::::::::::\n");
 	fprintf(f, "\nAll tests for Insert passed!\n");
 	fclose(f);
 }
@@ -488,8 +486,13 @@ void test_list_insert(TTree **tree) {
 	ASSERT(f, (*tree)->root->next == successor((*tree)->root), "ListInsert-06");
 
 	insert(*(tree), values + 3, values + 4);
-	printf("next root = %d\n" , *(int *)((*tree)->root->next->elem));
+	// printf("next root elem = %d\n" , *(int *)((*tree)->root->next->elem));
+	// printf("next root info = %d\n" , *(int *)((*tree)->root->next->info));
+	// printf("root = %p\n" , (*tree)->root);
+	// printf("root_end = %p\n" , (*tree)->root->end);
 	ASSERT(f, (*tree)->root != (*tree)->root->end, "ListInsert-07");
+	printf("%p\n" , ((*tree)->root->next));
+	printf("%p\n" , ((*tree)->root->end));
 	ASSERT(f, (*tree)->root->next == (*tree)->root->end, "ListInsert-08");
 	ASSERT(f, (*tree)->root->prev == predecessor((*tree)->root), "ListInsert-09");
 	ASSERT(f, (*tree)->root->end->next == successor((*tree)->root), "ListInsert-10");
@@ -744,7 +747,9 @@ int main() {
 	test_succ_pred(&tree1);
 	test_rotations(&tree1);
 	test_insert(&tree2);
-	test_delete(&tree2);
+	//test_delete(&tree2);
+	destroyTree(tree2);
+	test_init(&tree2);
 	test_list_insert(&tree2);
 	test_list_delete(&tree2);
 	test_free(&tree1, &tree2);

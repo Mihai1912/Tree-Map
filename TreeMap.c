@@ -98,16 +98,18 @@ TreeNode* maximum(TreeNode* x) {
  * (succesorul in inordine)
  */
 TreeNode* successor(TreeNode* x) {
-	TreeNode* node = x;
+	TreeNode* node = x , *p=x->parent;
 	if (node->right != NULL) {
 		return minimum(node->right);
 	} else {
-		while (node->parent != NULL && node != node->parent->left)
+		while (p != NULL && node == p->right)
 		{
-			node = node->parent;
+			node = p;
+			p = p->parent;
 		}
-		return node->parent;
+		return p;
 	}
+	return NULL;
 }
 
 
@@ -115,15 +117,17 @@ TreeNode* successor(TreeNode* x) {
  * (predecesorul in inordine)
  */
 TreeNode* predecessor(TreeNode* x) {
-	TreeNode* node = x;
+	TreeNode* node = x , *p=x->parent;
 	if (node->left != NULL) {
-        return maximum(node->left);
-    } else {
-        while (node->parent != NULL && node != node->parent->right) {
-            node = node->parent;
-        }
-        return node->parent;
-    }
+		return maximum(node->left);
+	} else {
+		while (p != NULL && node == p->left)
+		{
+			node = p;
+			p = p->parent;
+		}
+		return p;
+	}
 	return NULL;
 }
 
@@ -148,6 +152,7 @@ void updateAllHeight(TreeNode* node) {
 	if (node->left != NULL) updateAllHeight(node->left);
 	if (node->right != NULL) updateAllHeight( node->right);
 	updateHeight(node);
+	return;
 }
 
 
@@ -166,6 +171,7 @@ void avlRotateLeft(TTree* tree, TreeNode* x) {
 	if (x == tree->root) {
 		TreeNode *aux = x->right;
 		x->right = aux->left;
+		if (aux->left != NULL) aux->left->parent = x;
 		aux->left = x;
 		x->parent = aux;
 		aux->parent = NULL;
@@ -174,24 +180,25 @@ void avlRotateLeft(TTree* tree, TreeNode* x) {
 		tree->root = aux;
 		return;
 	} else {
-		TreeNode *aux = x->right;
-		x->right = aux->left;
-		aux->left = x;
-		updateHeight(x);
-		updateHeight(aux);
-		TreeNode *parinte;
-		int dir_ind;
+		TreeNode *aux , *parinte;
 		parinte = x->parent;
-		if (parinte->left == x) {
-			dir_ind = 1;
-		} else if (parinte->right == x){
-			dir_ind = 0;
+		int ind_dir;
+		if (parinte->right != NULL && parinte->right == x) {
+			ind_dir = 1;
 		}
-		x = aux;
-		if (dir_ind == 1) {
-			parinte->left = x;
-		} else if(dir_ind == 0){
-			parinte->right = x;
+		if (parinte->left != NULL && parinte->left == x) {
+			ind_dir = 0;
+		}
+		aux = x->right;
+		x->right = aux->left;
+		if (aux->left != NULL) aux->left->parent = x;
+		aux->left = x;
+		x->parent = aux;
+		aux->parent = parinte;
+		if (ind_dir == 1) {
+			parinte->right = aux;
+		} else {
+			parinte->left = aux;
 		}
 		return;
 	}
@@ -221,25 +228,25 @@ void avlRotateRight(TTree* tree, TreeNode* y) {
 		tree->root = aux;
 		return;
 	} else {
-		TreeNode *aux = y->left;
-		TreeNode *parinte;
-		int dir_ind;
+		TreeNode *aux , *parinte;
 		parinte = y->parent;
-		if (parinte->left != NULL && parinte->left == y) {
-			dir_ind = 1;
-		}
+		int ind_dir;
 		if (parinte->right != NULL && parinte->right == y) {
-			dir_ind = 0;
+			ind_dir = 1;
+		} 
+		if (parinte->left != NULL && parinte->left == y) {
+			ind_dir = 0;
 		}
+		aux = y->left;
 		y->left = aux->right;
+		if (aux->right != NULL) aux->right->parent = y;
 		aux->right = y;
-		updateHeight(y);
-		updateHeight(aux);
-		y = aux;
-		if (dir_ind == 1) {
-			parinte->left = y;
+		y->parent = aux;
+		aux->parent = parinte;
+		if (ind_dir == 1) {
+			parinte->right = aux;
 		} else {
-			parinte->right = y;
+			parinte->left = aux;
 		}
 		return;
 	}
@@ -302,11 +309,13 @@ void avlFixUp(TTree* tree, TreeNode* y) {
 
 	if (node == max->left){
 		avlRotateRight(tree , max);
-		avlRotateLeft(tree , max->parent);
+		avlRotateLeft(tree , max->parent->parent);
+		return;
 	}
 	if (node == min->right){
 		avlRotateLeft(tree , min);
-		avlRotateRight(tree , min->parent);	
+		avlRotateRight(tree , min->parent);
+		return;	
 	}
 
 
@@ -323,25 +332,30 @@ void avlFixUp(TTree* tree, TreeNode* y) {
 
 
 	if (avlGetBalance(tree->root) == 1 || avlGetBalance(tree->root) == -1 || avlGetBalance(tree->root) == 0) {
-		while (min->parent != NULL) {
-			if (avlGetBalance(min) > 1) {
-				avlRotateLeft(tree , min);
-			}
-			if (avlGetBalance(min) < -1) {
-				avlRotateRight(tree , min);
-			}
-			min = min->parent;
-		}
 		while (max->parent != NULL) {
 			if (avlGetBalance(max) > 1) {
 				avlRotateLeft(tree , max);
+				break;
 			}
 			if (avlGetBalance(max) < -1) {
-					avlRotateRight(tree , max);
+				avlRotateRight(tree , max);
+				break;
 			}
 			max = max->parent;
 		}
+		while (min->parent != NULL) {
+			if (avlGetBalance(min) > 1) {
+				avlRotateLeft(tree , min);
+				break;
+			}
+			if (avlGetBalance(min) < -1) {
+				avlRotateRight(tree , min);
+				break;
+			}
+			min = min->parent;
+		}
 	}
+	return;
 }
 
 
@@ -382,8 +396,26 @@ TreeNode* createTreeNode(TTree *tree, void* value, void* info) {
  *
  */
 
+void setPrevNext(TTree* tree, TreeNode* node) {
+	if (node->left != NULL) setPrevNext(tree , node->left);
+	if (node != maximum(tree->root)){
+		node->next = successor(node);
+	} else if (node == maximum(tree->root)) {
+		node->next = NULL;
+	}
+	if (node != minimum(tree->root)) {
+		node->prev = predecessor(node);
+	} else if (node == minimum(tree->root)) {
+		node->prev = NULL;
+	}
+	if (node->right != NULL) setPrevNext(tree , node->right);
+	return;
+}
+
+
 void insert(TTree* tree, void* elem, void* info) {
-	TreeNode* node , * aux , *min , *max , *tmp_min , *tmp_max;
+	printf("==========\n");
+	TreeNode* node , * aux , *a , *b , *c;
 	if (tree == NULL) return;
 	if (tree != NULL) {
 		if (tree->root == NULL) {
@@ -405,45 +437,82 @@ void insert(TTree* tree, void* elem, void* info) {
 					break;
 				}
 			}
+			aux->end = aux;
+			aux->end->prev = aux;
+			aux->next = aux->end;
 			if (tree->compare(aux->elem , node->elem) == 1) {
 				aux->left = node;
 				node->parent = aux;
 				node->end = node;
 				updateHeight(aux);
+				setPrevNext(tree , tree->root);
 			} else if (tree->compare(aux->elem , node->elem) == -1) {
 				aux->right = node;
 				node->parent = aux;
 				node->end = node;
 				updateHeight(aux);
+				setPrevNext(tree , tree->root);
 			} else if (tree->compare(aux->elem , node->elem) == 0) {
-				if (aux->next == NULL) {
-					aux->next = node;
-					node->prev = aux;
-					aux->end = node;
-					aux->end->next = NULL;	
+				printf("valoare elemnet aux = %d\n" , *(int *)(aux->elem));
+				printf("valoare elemnet node = %d\n" , *(int *)(node->elem));
+				if (aux == aux->end) {
+					printf("ok!\n");
+					if (aux->end->next != NULL) {
+						printf("---------\n");
+						printf("%p\n" , aux);
+						printf("%p\n" , aux->end);
+						printf("%p\n" , aux->end->prev);
+						printf("%p\n" , aux->next);
+						aux->next->prev = node;
+						node->next = aux->next;
+						aux->end = node;
+						aux->next = node;
+						node->prev = aux;
+						printf("-%p\n" , aux);
+						printf("-%p\n" , aux->end);
+						printf("-%p\n" , aux->end->prev);
+						printf("-%p" , aux->next);
+					} else {
+						aux->end->next = node;
+						node->prev = aux->end;
+						aux->end = node;
+					}
+				} else {
+					printf("alooo\n");
 				}
 			}
 		}
 		updateAllHeight(tree->root);
 		avlFixUp(tree , node);
-		min = minimum(tree->root);
-		max = maximum(tree->root);
-
-		tmp_max = max;
-		tmp_min = min;
-
-		while (successor(tmp_min) != NULL)
-		{
-			tmp_min->next = successor(tmp_min);
-			tmp_min = successor(tmp_min);
-		}
-
-		while (predecessor(tmp_max) != NULL)
-		{
-			tmp_max->prev = predecessor(tmp_max);
-			tmp_max = predecessor(tmp_max);
-		}
 		
+		setPrevNext(tree , tree->root);
+
+		a = minimum(tree->root);
+		b = maximum(tree->root);
+		c = a;
+
+
+		printf("\n");
+		while (a != NULL)
+		{
+			printf("%d " , *(int *)(a->elem));
+			a=a->next;
+		}
+		printf("\n");
+		while (b != NULL)
+		{
+			printf("%d " , *(int *)(b->elem));
+			b=b->prev;
+		}
+		printf("\n");
+
+		while (c != NULL)
+		{
+			printf("end=%d/%d " , *(int *)(c->end->elem) , *(int *)(c->end->info));
+			c=c->next;
+		}
+		printf("\n");
+
 		tree->size++;
 		return;
 	}
@@ -488,7 +557,13 @@ void destroyTree(TTree* tree){
 	/* Se poate folosi lista dublu intalntuita
 	 * pentru eliberarea memoriei
 	 */
-	free(tree);
 	if (tree == NULL || tree->root == NULL)
 		return;
+	TreeNode *aux = maximum(tree->root) , *aux2 = aux;
+	while (aux != NULL) {
+			aux2 = aux;
+			aux=aux->prev;
+			destroyTreeNode(tree , aux2);
+	}
+	free(tree);
 }
