@@ -21,11 +21,27 @@
  *         \
  *	 	 EXAMPLE (8)
  * */
-void buildTreeFromFile(char* fileName, TTree* tree) {
 
+
+void buildTreeFromFile(char* fileName, TTree* tree) {
 	// Verificarea argumentelor
 	if(fileName == NULL || tree == NULL)
 		return;
+
+	// char* buffer = calloc(BUFLEN , sizeof(char));
+	// FILE* ptr = fopen(fileName , "rt");
+	// int index = 0;
+	
+	// while (fscanf(ptr , "%s" , buffer) != EOF)
+	// {
+	// 	if (buffer[strlen(buffer)-1] < 'A' || buffer[strlen(buffer)-1] > 'Z') {
+	// 		buffer[strlen(buffer)-1] = '\0';
+	// 	}
+	// 	printf("%s -> %d\n" , buffer , index);
+	// 	insert(tree , tree->createElement(buffer), tree->createInfo(&index));
+	// 	index += strlen(buffer);
+	// }
+	// free(buffer);
 }
 
 

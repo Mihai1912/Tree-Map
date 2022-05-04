@@ -368,6 +368,7 @@ void test_insert(TTree** tree) {
 	ASSERT(f, *((long*)(*tree)->root->left->left->elem) == 0l, "Insert-07");
 	ASSERT(f, *((long*)(*tree)->root->left->right->elem) == 2l, "Insert-08");
 
+
 	// Test Left Rotate
 	insert((*tree), values + 5, values + 5);
 	insert((*tree), values + 6, values + 6);
@@ -375,12 +376,14 @@ void test_insert(TTree** tree) {
 	ASSERT(f, *((long*)(*tree)->root->right->left->elem) == 4l,"Insert-10");
 	ASSERT(f, *((long*)(*tree)->root->right->right->elem) == 6l,"Insert-11");
 
+
 	// Test Zig-Zag case
 	insert((*tree), values + 8, values + 8);
 	insert((*tree), values + 7, values + 7);
 	ASSERT(f, *((long*)(*tree)->root->right->right->elem) == 7l,"Insert-12");
 	ASSERT(f, *((long*)(*tree)->root->right->right->left->elem) == 6l,"Insert-13");
 	ASSERT(f, *((long*)(*tree)->root->right->right->right->elem) == 8l,"Insert-14");
+
 	fprintf(f, "\nAll tests for Insert passed!\n");
 	fclose(f);
 }

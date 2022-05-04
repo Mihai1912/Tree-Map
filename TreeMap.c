@@ -34,9 +34,9 @@ TTree* createTree(void* (*createElement)(void*),
  */
 int isEmpty(TTree* tree) {
 	if (tree->root == NULL) {
-	return 1;
+		return 1;
 	} else {
-	return 0;
+		return 0;
 	}
 }
 
@@ -53,11 +53,11 @@ TreeNode* search(TTree* tree, TreeNode* x, void* elem) {
 	TreeNode* node = x;
 	while (node != NULL) 
 	{
-		if (tree->compare(node->info , elem) == 1) {
+		if (tree->compare(node->elem , elem) == 1) {
 			node = node->left;
-		} else if (tree->compare(node->info , elem) == -1) {
+		} else if (tree->compare(node->elem , elem) == -1) {
 			node = node->right;
-		} else if (tree->compare(node->info , elem) == 0) {
+		} else if (tree->compare(node->elem , elem) == 0) {
 			break;
 		}
 	}
@@ -99,9 +99,12 @@ TreeNode* maximum(TreeNode* x) {
  */
 TreeNode* successor(TreeNode* x) {
 	TreeNode* node = x , *p=x->parent;
+	// daca nodul pt care dorim sa aflam succesorul are subarbore drept atunci succesorul este minimul acestuia subarbore
 	if (node->right != NULL) {
 		return minimum(node->right);
-	} else {
+	} 
+	// in caz contrar se va merge din parinte in parinte pana se va gasi succesorul
+	else {
 		while (p != NULL && node == p->right)
 		{
 			node = p;
@@ -118,9 +121,12 @@ TreeNode* successor(TreeNode* x) {
  */
 TreeNode* predecessor(TreeNode* x) {
 	TreeNode* node = x , *p=x->parent;
+	// daca nodul pt care dorim sa aflam succesorul are subarbore stang atunci predecesorul este maximul acestuia subarbore
 	if (node->left != NULL) {
 		return maximum(node->left);
-	} else {
+	} 
+	// in caz contrar se va merge din parinte in parinte pana se va gasi predecesor
+	else {
 		while (p != NULL && node == p->left)
 		{
 			node = p;
@@ -146,9 +152,11 @@ void updateHeight(TreeNode* x) {
 	}
 }
 
-
+/* Actualizeaza inaltimea tuturor nodurilor din arbore
+ */
 
 void updateAllHeight(TreeNode* node) {
+	// se parcurge arborele in inordine si se actualizeaza inlatimea pt fiecare nod in parte
 	if (node->left != NULL) updateAllHeight(node->left);
 	if (node->right != NULL) updateAllHeight( node->right);
 	updateHeight(node);
@@ -168,6 +176,7 @@ void updateAllHeight(TreeNode* node) {
  */
 void avlRotateLeft(TTree* tree, TreeNode* x) {
 	if (tree == NULL || x == NULL) return;
+	// cazul in care nodul pentru care s-a apelat rotirea este root-ul arborelui
 	if (x == tree->root) {
 		TreeNode *aux = x->right;
 		x->right = aux->left;
@@ -179,7 +188,9 @@ void avlRotateLeft(TTree* tree, TreeNode* x) {
 		updateHeight(aux);
 		tree->root = aux;
 		return;
-	} else {
+	} 
+	// cazul in care nodul pentru care s-a apelat rotirea nu este root-ul arborelui si trebuie legat de restul arborelui
+	else {
 		TreeNode *aux , *parinte;
 		parinte = x->parent;
 		int ind_dir;
@@ -217,6 +228,7 @@ void avlRotateLeft(TTree* tree, TreeNode* x) {
  */
 void avlRotateRight(TTree* tree, TreeNode* y) {
 	if (tree == NULL || y == NULL) return;
+	// cazul in care nodul pentru care s-a apelat rotirea este root-ul arborelui
 	if (y == tree->root) {
 		TreeNode *aux = y->left;
 		y->left = aux->right;
@@ -227,7 +239,9 @@ void avlRotateRight(TTree* tree, TreeNode* y) {
 		updateHeight(aux);
 		tree->root = aux;
 		return;
-	} else {
+	} 
+	// cazul in care nodul pentru care s-a apelat rotirea nu este root-ul arborelui si trebuie legat de restul arborelui
+	else {
 		TreeNode *aux , *parinte;
 		parinte = y->parent;
 		int ind_dir;
@@ -278,8 +292,8 @@ int avlGetBalance(TreeNode *x) {
  *
  */
 void avlFixUp(TTree* tree, TreeNode* y) {
-	TreeNode *aux = y;
-	int balanceFact = avlGetBalance(aux);
+			TreeNode *aux = y;
+			int balanceFact = avlGetBalance(aux);
 			while (1)
 			{
 				if (balanceFact < -1 && maximum(tree->root)->left != NULL) {
@@ -292,15 +306,9 @@ void avlFixUp(TTree* tree, TreeNode* y) {
 					avlRotateLeft(tree , aux);
 					updateAllHeight(tree->root);
 					return;
-				}
+				}	
 				if (balanceFact > 1) {
 					avlRotateRight(tree , aux);
-					updateAllHeight(tree->root);
-					return;
-				}
-				if (aux == maximum(tree->root)->left) {
-					avlRotateRight(tree , maximum(tree->root));
-					avlRotateLeft(tree , aux->parent);
 					updateAllHeight(tree->root);
 					return;
 				}
@@ -343,23 +351,26 @@ TreeNode* createTreeNode(TTree *tree, void* value, void* info) {
 	return node;
 }
 
+/* Setarea pentru fiecare nod a campului next si prev
+ */
+
+void setPrevNext(TTree* tree, TreeNode* node) {
+	// parcurgerea arborelui in inordine si setarea campului next sau prev cu ajutorul functiilor successor si predecessor
+    if (node->left != NULL) setPrevNext(tree , node->left);
+    node->next = successor(node);
+    node->prev = predecessor(node);
+    if (node->right != NULL) setPrevNext(tree , node->right);
+    return;
+}
 
 /* Inserarea unul nou nod in cadrul multi-dictionarului
  * ! In urma adaugarii arborele trebuie sa fie echilibrat
  *
  */
 
-void setPrevNext(TTree* tree, TreeNode* node) {
-	if (node->left != NULL) setPrevNext(tree , node->left);
-		node->next = successor(node);
-		node->prev = predecessor(node);
-	if (node->right != NULL) setPrevNext(tree , node->right);
-	return;
-}
-
 
 void insert(TTree* tree, void* elem, void* info) {
-	TreeNode* node , * aux;
+	TreeNode* node , *aux;
 	node = createTreeNode(tree , elem , info);
 	if (tree == NULL) return;
 	if (tree != NULL) {
@@ -368,9 +379,10 @@ void insert(TTree* tree, void* elem, void* info) {
 			tree->root->end = tree->root;
 			tree->size++;
 			return;
-		} 
+		}
 		else {
 			aux = tree->root;
+			// parcurgere pana la parintele nodului de inserat
 			while (aux != NULL && (aux->right != NULL || aux->left != NULL))
 			{
 				if (tree->compare(aux->elem , node->elem) == 1) {
@@ -381,20 +393,31 @@ void insert(TTree* tree, void* elem, void* info) {
 					break;
 				}
 			}
-			if (tree->compare(aux->elem , node->elem) == 1) {
+			// inserare la stanga parintelui
+			if (aux != NULL && tree->compare(aux->elem , node->elem) == 1) {
 				aux->left = node;
 				node->parent = aux;
 				node->end = node;
 				updateHeight(aux);
 				setPrevNext(tree , tree->root);
-			} else if (tree->compare(aux->elem , node->elem) == -1) {
+				avlFixUp(tree , node);
+				updateAllHeight(tree->root);
+			} 
+			// inserare la dreapata parintelui
+			else if (aux != NULL && tree->compare(aux->elem , node->elem) == -1) {
 				aux->right = node;
 				node->parent = aux;
 				node->end = node;
 				updateHeight(aux);
 				setPrevNext(tree , tree->root);
-			} else if (tree->compare(aux->elem , node->elem) == 0) {
+				avlFixUp(tree , node);
+				updateAllHeight(tree->root);
+			} 
+			// inserare in lista de duplicate
+			else if (aux != NULL && tree->compare(aux->elem , node->elem) == 0) {
+				// cazul in care in lista de duplicate nu este lista celui mai mare nr din arbore
 				if (aux->next != NULL) {
+					// cazul in care lista de duplicate este goala
 					if (aux != aux->end) {
 						node->next = aux->end->next;
 						aux->end->next->prev = node;
@@ -402,7 +425,7 @@ void insert(TTree* tree, void* elem, void* info) {
 						aux->end->next = node;
 						aux->end = node;
 					}
-
+					// cazul in care lista de duplicate nu este goala
 					if (aux == aux->end) {
 						node->next = aux->next;
 						aux->next->prev = node;
@@ -410,16 +433,15 @@ void insert(TTree* tree, void* elem, void* info) {
 						aux->next = aux->end;
 						node->prev = aux;
 					}
-				} else {
+				} 
+				// cazul in care in lista de duplicate este lista celui mai mare nr din arbore
+				else {
 					node->prev = aux->end;
 					aux->end->next = node;
 					aux->end = node;
 				}
 			}
 		}
-		updateAllHeight(tree->root);
-		avlFixUp(tree , node);
-
 		tree->size++;
 		return;
 	}
@@ -455,9 +477,10 @@ void destroyTreeNode(TTree *tree, TreeNode* node){
 void delete(TTree* tree, void* elem) {
 	TreeNode *del_node = search(tree , tree->root , elem) , *parinte , *aux , *aux2;
 	aux2 = del_node;
+	// cazul in care dorim sa stergem un nod din arbore
 	if (del_node == del_node->end) {
 		parinte = del_node->parent;
-		
+		// cazul in care nodul de sters este frunza 
 		if (del_node->right == NULL && del_node->left == NULL && del_node != tree->root) {
 			parinte = del_node->parent;
 			if (del_node->parent->right == del_node) {
@@ -472,13 +495,16 @@ void delete(TTree* tree, void* elem) {
 			setPrevNext(tree , tree->root);
 			return;
 		}
+		// cazul in care nodul de sters este root
 		if (del_node == tree->root) {
+			// cazul in care in arbore se afla decat root ul
 			if (del_node->left == NULL && del_node->right == NULL) {
 				tree->root = NULL;
 				destroyTreeNode(tree , del_node);
 				tree->size--;
 				return;
 			}
+			// cazul in care in arbore nu se afla decat root ul
 			aux = minimum(del_node->right);
 			if (aux->right != NULL) {
 				if (aux->parent->left == aux) {
@@ -506,6 +532,8 @@ void delete(TTree* tree, void* elem) {
 			avlFixUp(tree , maximum(tree->root));
 			return;
 		}
+
+		// cazul in care nodul de sters are decat copil de dreapta
 		if (del_node->right != NULL && del_node->left == NULL) {
 			aux = del_node->right;
 			aux->parent = del_node->parent;
@@ -517,14 +545,30 @@ void delete(TTree* tree, void* elem) {
 			}
 			destroyTreeNode(tree , del_node);
 			tree->size--;
-		setPrevNext(tree , tree->root);
+			setPrevNext(tree , tree->root);
 			return;
 		}
+
+		// cazul in care nodul de sters are decat copil de stanga
 		if (del_node->left != NULL && del_node->right == NULL) {
-			
+			aux = del_node->left;
+			aux->parent = del_node->parent;
+			if (del_node->parent->left == del_node) {
+				del_node->parent->left = aux;
+			}
+			if (del_node->parent->right == del_node) {
+				del_node->parent->right = aux;
+			}
+			destroyTreeNode(tree , del_node);
+			tree->size--;
+			setPrevNext(tree , tree->root);
+			return;
 		}
 	}
+
+	// cazul in care dorim sa stergem un nod din lista de duplicate
 	if (del_node != del_node->end) {
+		// cazul in care nodul de sters este in lista unui nod din arbore care are predecesor
 		if (del_node->end->next != NULL) {
 			del_node = del_node->end;
 			aux = del_node->prev;
@@ -533,8 +577,9 @@ void delete(TTree* tree, void* elem) {
 			aux2->end = aux;
 			destroyTreeNode(tree , del_node);
 			return;
-		} else {
-			printf("ashdv\n");
+		} 
+		// cazul in care nodul de sters este in lista unui nod care nu are predecesor
+		else {
 			del_node = del_node->end;
 			aux = del_node->prev;
 			aux->next = NULL;
